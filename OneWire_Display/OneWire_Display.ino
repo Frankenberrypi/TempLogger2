@@ -137,11 +137,17 @@ void loop(void)
 	//else ghost device! Check your power requirements and cabling
 	
   }
-  // Print to the LCD
-  // Todo: change this to work for multiple devices
+  // Print the device number to the LCD
   lcd.setCursor(0,0);
+  lcd.print("Sensor 1");
+
+  // Print the temperature to the LCD
+  // Todo: change this to work for multiple devices
+  lcd.setCursor(0,1);
   lcd.print("Temp: ");
   lcd.print(temps[0], 1);
+  lcd.print(" deg C");
+
 }
 
 // function to print a device address
