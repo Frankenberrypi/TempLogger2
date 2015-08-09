@@ -139,7 +139,7 @@ void loop(void)
   }
   // Print the device number to the LCD
   lcd.setCursor(0,0);
-  lcd.print("Sensor 1");
+  lcd.print("Sensor 0");
 
   // Print the temperature to the LCD
   // Todo: change this to work for multiple devices
