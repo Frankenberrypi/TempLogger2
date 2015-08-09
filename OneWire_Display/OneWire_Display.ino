@@ -28,6 +28,11 @@ DallasTemperature sensors(&oneWire);
 
 int numberOfDevices; // Number of temperature devices found
 
+// Start with sensor number 0
+int idNum=0;
+// Start with temp units in Celsius
+char units='c';
+  
 DeviceAddress tempDeviceAddress; // We'll use this variable to store a found device address
 
 void setup(void)
@@ -36,8 +41,8 @@ void setup(void)
   lcd.begin(16, 2);
   
   // Set backlight color
-  lcd.setBacklight(RED);
-  
+  lcd.setBacklight(TEAL);
+    
   // start serial port
   Serial.begin(9600);
   Serial.println("Temp controller debugging");
@@ -100,9 +105,6 @@ float printTemperature(DeviceAddress deviceAddress)
   // Read temperature from device, Celcius is default
   float tempC = sensors.getTempC(deviceAddress);
   
-  // Convert to fahrenheit
-  // float tempF = DallasTemperature::toFahrenheit(tempC);
-  
   // Return the temperature in Celcius 
   return tempC;
 }
@@ -111,43 +113,60 @@ void loop(void)
 { 
   // call sensors.requestTemperatures() to issue a global temperature 
   // request to all devices on the bus
-  // Serial.print("Requesting temperatures...");
-  sensors.requestTemperatures(); // Send the command to get temperatures
-  // Serial.println("DONE");
+  sensors.requestTemperatures();
   
   // Create the array to store temperatures
   float temps[numberOfDevices];
-  
-  // Todo: This was needed when it printed to serial. Delete, reduce? 
-  //delay(500);
   
   // Loop through each device, store temperature data
   for(int i=0;i<numberOfDevices; i++)
   {
     // Search the wire for address
     if(sensors.getAddress(tempDeviceAddress, i))
-	{
-		// Output the device ID
-		//Serial.print("Temperature for device: ");
-		//Serial.println(i,DEC);
-		
-		// It responds almost immediately. Let's print out the data
-		temps[i] = printTemperature(tempDeviceAddress);
-	} 
+	{temps[i] = printTemperature(tempDeviceAddress);} 
 	//else ghost device! Check your power requirements and cabling
-	
   }
-  // Print the device number to the LCD
-  lcd.setCursor(0,0);
-  lcd.print("Sensor 0");
-
-  // Print the temperature to the LCD
-  // Todo: change this to work for multiple devices
-  lcd.setCursor(0,1);
-  lcd.print("Temp: ");
-  lcd.print(temps[0], 1);
-  lcd.print(" deg C");
-
+  
+  
+  // Read the values from the buttons
+  uint8_t buttons = lcd.readButtons();
+  
+  if (buttons) {
+//    if (buttons & BUTTON_UP) {
+//      lcd.print("UP ");
+//      lcd.setBacklight(RED);
+//    }
+//    if (buttons & BUTTON_DOWN) {
+//      lcd.print("DOWN ");
+//      lcd.setBacklight(YELLOW);
+//    }
+//    if (buttons & BUTTON_LEFT) {
+//      lcd.print("LEFT ");
+//      lcd.setBacklight(GREEN);
+//    }
+    if (buttons & BUTTON_RIGHT | buttons & BUTTON_UP) {
+      if (idNum==numberOfDevices-1){idNum=0;}  
+      else {idNum++;}
+    }
+    if (buttons & BUTTON_LEFT | buttons & BUTTON_DOWN) {
+      if (idNum==0){idNum=numberOfDevices-1;}  
+      else {idNum--;}
+    }
+    if (buttons & BUTTON_SELECT) {
+      if (units=='c') {
+        units='f';
+        lcd.setBacklight(BLUE);
+      }
+      else {
+        units='c';
+        lcd.setBacklight(TEAL);
+      }
+    }
+  }
+  
+  
+  // Call function to print to LCD
+  printTemp(temps, idNum, units);
 }
 
 // function to print a device address
@@ -157,5 +176,29 @@ void printAddress(DeviceAddress deviceAddress)
   {
     if (deviceAddress[i] < 16) Serial.print("0");
     Serial.print(deviceAddress[i], HEX);
+  }
+}
+
+// function to print data to LCD
+void printTemp(float temps[], int idNum, int units)
+{
+    // Print the device number to the LCD
+  lcd.setCursor(0,0);
+  lcd.print("Sensor ");
+  lcd.print(idNum);
+
+  // Print the temperature to the LCD
+  // Todo: change this to work for multiple devices
+  lcd.setCursor(0,1);
+  lcd.print("Temp: ");
+  
+  if (units=='c'){
+    lcd.print(temps[idNum], 1);
+    lcd.print(" deg C");
+  }
+  else
+  {
+    lcd.print(DallasTemperature::toFahrenheit(temps[idNum]), 1);
+    lcd.print(" deg F");
   }
 }
