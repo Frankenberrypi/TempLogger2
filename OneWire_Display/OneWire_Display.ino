@@ -99,15 +99,7 @@ void setup(void)
 
 }
 
-// function to return the temperature for a device
-float printTemperature(DeviceAddress deviceAddress)
-{
-  // Read temperature from device, Celcius is default
-  float tempC = sensors.getTempC(deviceAddress);
-  
-  // Return the temperature in Celcius 
-  return tempC;
-}
+
 
 void loop(void)
 { 
@@ -179,13 +171,23 @@ void printAddress(DeviceAddress deviceAddress)
   }
 }
 
+// function to return the temperature for a device
+float printTemperature(DeviceAddress deviceAddress)
+{
+  // Read temperature from device, Celcius is default
+  float tempC = sensors.getTempC(deviceAddress);
+  
+  // Return the temperature in Celcius 
+  return tempC;
+}
+
 // function to print data to LCD
 void printTemp(float temps[], int idNum, int units)
 {
     // Print the device number to the LCD
   lcd.setCursor(0,0);
   lcd.print("Sensor ");
-  lcd.print(idNum);
+  lcd.print(tempDeviceAddress[idNum]);
 
   // Print the temperature to the LCD
   // Todo: change this to work for multiple devices
