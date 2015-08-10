@@ -3,11 +3,12 @@
 #include <Wire.h>
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
+#include <SD.h>
 
 // I2C SLCL and SDA pins on analog 4 and 5. 
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
-// Data wire is plugged into port 2 on the Arduino
+// Data wire is plugged into digital port 2 on the Arduino
 #define ONE_WIRE_BUS 2
 #define TEMPERATURE_PRECISION 9
 
@@ -19,6 +20,13 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BLUE 0x4
 #define VIOLET 0x5
 #define WHITE 0x7
+
+// SD card on SPI bus as follows:
+// MOSI - Digital 11
+// MISO - Digital 12
+// CLK - Digital 13
+// CS - Digital 4
+const int chipSelect = 4;
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -52,10 +60,6 @@ void setup(void)
   
   // Grab a count of devices on the wire
   numberOfDevices = sensors.getDeviceCount();
-  
-  // Make an array for the temperature values
-  // Todo: moved this into the main loop
-  //float temps[numberOfDevices];
   
   // locate devices on the bus
   Serial.print("Locating devices...");
@@ -96,7 +100,31 @@ void setup(void)
 		Serial.print(" but could not detect address. Check power and cabling");
 	}
   }
-
+  
+  // SD Card stuff
+  Serial.print("Initializing SD card///");
+  pinMode(10, OUTPUT);
+  
+  // See if the card is there and can be initialized 
+  if (!SD.begin(chipSelect)){
+    Serial.println("Card failed");
+    return;
+  }
+  Serial.println("Card initialized");
+  
+  // Delete the old file
+  if (SD.exists("DATALOG.CSV"));{
+    SD.remove("DATALOG.CSV");
+  }
+  File dataFile = SD.open("DATALOG.CSV", FILE_WRITE);
+  dataFile.print("Time (ms),");
+  for (int i=0; i < numberOfDevices; i++){
+    dataFile.print("Temp ");
+    dataFile.print(tempDeviceAddress[i]);
+    dataFile.print(" ,");
+  }
+  dataFile.println("");
+  dataFile.close();
 }
 
 
@@ -124,18 +152,6 @@ void loop(void)
   uint8_t buttons = lcd.readButtons();
   
   if (buttons) {
-//    if (buttons & BUTTON_UP) {
-//      lcd.print("UP ");
-//      lcd.setBacklight(RED);
-//    }
-//    if (buttons & BUTTON_DOWN) {
-//      lcd.print("DOWN ");
-//      lcd.setBacklight(YELLOW);
-//    }
-//    if (buttons & BUTTON_LEFT) {
-//      lcd.print("LEFT ");
-//      lcd.setBacklight(GREEN);
-//    }
     if (buttons & BUTTON_RIGHT | buttons & BUTTON_UP) {
       if (idNum==numberOfDevices-1){idNum=0;}  
       else {idNum++;}
@@ -159,6 +175,26 @@ void loop(void)
   
   // Call function to print to LCD
   printTemp(temps, idNum, units);
+  
+  // Log data to SD card
+  // Todo: check if there is an old file and back it up
+    
+  // Open the file
+  File dataFile = SD.open("DATALOG.CSV", FILE_WRITE);
+//  int m = millis();
+//  Serial.println(m);
+  
+  // Write to the file.  First time, then loop through temps
+  if (dataFile){
+    dataFile.print(millis());
+    for (int i=0; i < numberOfDevices; i++){
+      dataFile.print(" ,");
+      dataFile.print(temps[i]);
+    }
+    // newline in file, then close it
+    dataFile.println(",");
+    dataFile.close();  
+  }
 }
 
 // function to print a device address
