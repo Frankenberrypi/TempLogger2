@@ -147,7 +147,6 @@ void loop(void)
 	//else ghost device! Check your power requirements and cabling
   }
   
-  
   // Read the values from the buttons
   uint8_t buttons = lcd.readButtons();
   
@@ -171,7 +170,6 @@ void loop(void)
       }
     }
   }
-  
   
   // Call function to print to LCD
   printTemp(temps, idNum, units);
@@ -197,46 +195,8 @@ void loop(void)
   }
 }
 
-// function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
-  for (uint8_t i = 0; i < 8; i++)
-  {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-  }
-}
 
-// function to return the temperature for a device
-float printTemperature(DeviceAddress deviceAddress)
-{
-  // Read temperature from device, Celcius is default
-  float tempC = sensors.getTempC(deviceAddress);
-  
-  // Return the temperature in Celcius 
-  return tempC;
-}
 
-// function to print data to LCD
-void printTemp(float temps[], int idNum, int units)
-{
-    // Print the device number to the LCD
-  lcd.setCursor(0,0);
-  lcd.print("Sensor ");
-  lcd.print(tempDeviceAddress[idNum]);
 
-  // Print the temperature to the LCD
-  // Todo: change this to work for multiple devices
-  lcd.setCursor(0,1);
-  lcd.print("Temp: ");
-  
-  if (units=='c'){
-    lcd.print(temps[idNum], 1);
-    lcd.print(" deg C");
-  }
-  else
-  {
-    lcd.print(DallasTemperature::toFahrenheit(temps[idNum]), 1);
-    lcd.print(" deg F");
-  }
-}
+
+
