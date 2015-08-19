@@ -22,10 +22,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define WHITE 0x7
 
 // SD card on SPI bus as follows:
-// MOSI - Digital 11
-// MISO - Digital 12
-// CLK - Digital 13
-// CS - Digital 4
+// MOSI - Digital 11, MISO - Digital 12, CLK - Digital 13, CS - Digital 4
 const int chipSelect = 4;
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
@@ -35,6 +32,8 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 int numberOfDevices; // Number of temperature devices found
+int errorState = 0; //0 = none, 1 = Sensors, 2 = MemCard
+int errorSwitch = 0;
 
 // Start with sensor number 0
 int idNum=0;
@@ -60,6 +59,7 @@ void setup(void)
   
   // Grab a count of devices on the wire
   numberOfDevices = sensors.getDeviceCount();
+  if(numberOfDevices == 0){errorState = 1;}
   
   // locate devices on the bus
   Serial.print("Locating devices...");
@@ -108,6 +108,7 @@ void setup(void)
   // See if the card is there and can be initialized 
   if (!SD.begin(chipSelect)){
     Serial.println("Card failed");
+    errorState = 2;
     return;
   }
   Serial.println("Card initialized");
@@ -172,7 +173,7 @@ void loop(void)
   }
   
   // Call function to print to LCD
-  printTemp(temps, idNum, units);
+  printTemp(temps, idNum, units, errorState, errorSwitch);
   
   // Log data to SD card
   // Todo: check if there is an old file and back it up
