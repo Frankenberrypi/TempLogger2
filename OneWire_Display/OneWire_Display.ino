@@ -50,7 +50,7 @@ void setup(void)
   // Set backlight color
   lcd.setBacklight(TEAL);
     
-  // start serial port
+  // start serial port for debugging
   Serial.begin(9600);
   Serial.println("Temp controller debugging");
 
