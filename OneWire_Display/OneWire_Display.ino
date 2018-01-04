@@ -1,16 +1,26 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Wire.h>
-#include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
+#include <utility/Adafruit_MCP23017.h>
+#include <SPI.h>
 #include <SD.h>
+
+// TODO: Cleanup libraries.  This version works with the libraries installed 
+// on Trifid. Try submodules, or at least put the libraries in the program
+// directory.
+
 
 // I2C SLCL and SDA pins on analog 4 and 5. 
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
 // Data wire is plugged into digital port 2 on the Arduino
 #define ONE_WIRE_BUS 2
-#define TEMPERATURE_PRECISION 9
+#define TEMPERATURE_PRECISION 12
+//  9 bit resolution is 0.5 deg_C increments, update time is about 270 ms per sensor
+// 10 bit resolution is 0.25 deg_C increments
+// 11 bit resolution is 0.125 deg_C increments
+// 12 bit resolution is 0.0625 deg_C increments, update time is about 806 ms per sensor
 
 // Backlight color setup
 #define RED 0x1
@@ -20,10 +30,6 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define BLUE 0x4
 #define VIOLET 0x5
 #define WHITE 0x7
-
-// SD card on SPI bus as follows:
-// MOSI - Digital 11, MISO - Digital 12, CLK - Digital 13, CS - Digital 4
-const int chipSelect = 4;
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -101,9 +107,13 @@ void setup(void)
 	}
   }
   
-  // SD Card stuff
+  // SD Card stuff ----------------------------------------------------------------------------
+  // SD card on SPI bus as follows:
+  // MOSI - Digital 11, MISO - Digital 12, CLK - Digital 13, CS - Digital 4
+  const int chipSelect = 4;
+
   Serial.print("Initializing SD card///");
-  pinMode(10, OUTPUT);
+  pinMode(4, OUTPUT);
   
   // See if the card is there and can be initialized 
   if (!SD.begin(chipSelect)){
@@ -188,7 +198,7 @@ void loop(void)
     dataFile.print(millis());
     for (int i=0; i < numberOfDevices; i++){
       dataFile.print(" ,");
-      dataFile.print(temps[i]);
+      dataFile.print(temps[i], 4);
     }
     // newline in file, then close it
     dataFile.println(",");
