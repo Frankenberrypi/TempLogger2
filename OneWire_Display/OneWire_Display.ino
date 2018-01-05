@@ -128,7 +128,7 @@ void setup(void)
     SD.remove("DATALOG.CSV");
   }
   File dataFile = SD.open("DATALOG.CSV", FILE_WRITE);
-  dataFile.print("Time (ms),");
+  dataFile.print("Time_ms,");
   for (int i=0; i < numberOfDevices; i++){
     dataFile.print("Temp ");
     dataFile.print(tempDeviceAddress[i]);
